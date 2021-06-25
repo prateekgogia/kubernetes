@@ -173,6 +173,7 @@ func (t *envelopeTransformer) addTransformer(encKey []byte, key []byte) (value.T
 	// cannot hash []uint8.
 	if t.cacheEnabled {
 		t.transformers.Add(base64.StdEncoding.EncodeToString(encKey), transformer)
+		klog.V(1).Infof("DEK Key added to the list %v", base64.StdEncoding.EncodeToString(encKey))
 		dekCacheFillPercent.Set(float64(t.transformers.Len()) / float64(t.cacheSize))
 	}
 	return transformer, nil
