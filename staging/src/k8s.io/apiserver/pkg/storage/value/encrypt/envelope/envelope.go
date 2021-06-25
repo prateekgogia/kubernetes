@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"k8s.io/apiserver/pkg/storage/value"
+	"k8s.io/klog/v2"
 
 	lru "github.com/hashicorp/golang-lru"
 	"golang.org/x/crypto/cryptobyte"
@@ -68,7 +69,7 @@ func NewEnvelopeTransformer(envelopeService Service, cacheSize int, baseTransfor
 	)
 
 	if cacheSize > 0 {
-		cache, err = lru.New(cacheSize)
+		cache, err = lru.NewWithEvict(cacheSize, onEvict)
 		if err != nil {
 			return nil, err
 		}
@@ -80,6 +81,10 @@ func NewEnvelopeTransformer(envelopeService Service, cacheSize int, baseTransfor
 		cacheEnabled:        cacheSize > 0,
 		cacheSize:           cacheSize,
 	}, nil
+}
+
+func onEvict(key interface{}, value interface{}) {
+	klog.V(1).Infof("DEK Key evicted from List %v, value %v", key, value)
 }
 
 // TransformFromStorage decrypts data encrypted by this transformer using envelope encryption.
