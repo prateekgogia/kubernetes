@@ -93,7 +93,7 @@ func SerializeObject(mediaType string, encoder runtime.Encoder, hw http.Response
 		utiltrace.Field{"protocol", req.Proto},
 		utiltrace.Field{"mediaType", mediaType},
 		utiltrace.Field{"encoder", encoder.Identifier()})
-	defer trace.LogIfLong(5 * time.Second)
+	defer trace.LogIfLong(2 * time.Second)
 
 	w := &deferredResponseWriter{
 		mediaType:       mediaType,
@@ -112,7 +112,7 @@ func SerializeObject(mediaType string, encoder runtime.Encoder, hw http.Response
 		}
 		return
 	}
-
+	trace.Step("encoder.Encode done")
 	// make a best effort to write the object if a failure is detected
 	utilruntime.HandleError(fmt.Errorf("apiserver was unable to write a JSON response: %v", err))
 	status := ErrorToAPIStatus(err)
@@ -126,9 +126,11 @@ func SerializeObject(mediaType string, encoder runtime.Encoder, hw http.Response
 		w.mediaType = "text/plain"
 		output = []byte(fmt.Sprintf("%s: %s", status.Reason, status.Message))
 	}
+	trace.Step("runtime.Encode done")
 	if _, err := w.Write(output); err != nil {
 		utilruntime.HandleError(fmt.Errorf("apiserver was unable to write a fallback JSON response: %v", err))
 	}
+	trace.Step("Write done")
 	w.Close()
 }
 
