@@ -126,6 +126,7 @@ func SerializeObject(mediaType string, encoder runtime.Encoder, hw http.Response
 		w.mediaType = "text/plain"
 		output = []byte(fmt.Sprintf("%s: %s", status.Reason, status.Message))
 	}
+	fmt.Printf("Len of the output data is %v\n", len(output))
 	trace.Step("runtime.Encode done")
 	if _, err := w.Write(output); err != nil {
 		utilruntime.HandleError(fmt.Errorf("apiserver was unable to write a fallback JSON response: %v", err))

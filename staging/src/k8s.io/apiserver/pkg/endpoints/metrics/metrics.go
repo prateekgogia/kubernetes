@@ -18,6 +18,7 @@ package metrics
 
 import (
 	"bufio"
+	"fmt"
 	"context"
 	"net"
 	"net/http"
@@ -454,6 +455,13 @@ func MonitorRequest(req *http.Request, verb, group, version, resource, subresour
 	requestLatencies.WithContext(req.Context()).WithLabelValues(reportedVerb, dryRun, group, version, resource, subresource, scope, component).Observe(elapsedSeconds)
 	// We are only interested in response sizes of read requests.
 	if verb == "GET" || verb == "LIST" {
+		if verb == "LIST" && resource == "secrets" {
+			if info != nil && info.GetName() != "" {
+				fmt.Printf("Name is %v, Response size is %v\n", info.GetName(), respSize)
+			} else {
+				fmt.Printf("Response size is %v\n", respSize)
+			}
+		}
 		responseSizes.WithContext(req.Context()).WithLabelValues(reportedVerb, group, version, resource, subresource, scope, component).Observe(float64(respSize))
 	}
 }
