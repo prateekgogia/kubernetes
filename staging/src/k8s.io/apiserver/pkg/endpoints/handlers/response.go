@@ -136,7 +136,7 @@ func transformResponseObject(ctx context.Context, scope *RequestScope, trace *ut
 	}
 	kind, serializer, _ := targetEncodingForTransform(scope, mediaType, req)
 	trace.Step("targetEncodingForTransform done")
-	responsewriters.WriteObjectNegotiated(serializer, scope, kind.GroupVersion(), w, req, statusCode, obj)
+	responsewriters.WriteObjectNegotiatedWithTrace(trace, serializer, scope, kind.GroupVersion(), w, req, statusCode, obj)
 	trace.Step("responsewriters.WriteObjectNegotiated done")
 
 }

@@ -243,6 +243,40 @@ func (w *deferredResponseWriter) Close() error {
 	return err
 }
 
+// WriteObjectNegotiatedWithTrace renders an object in the content type negotiated by the client.
+func WriteObjectNegotiatedWithTrace(trace *utiltrace.Trace, s runtime.NegotiatedSerializer, restrictions negotiation.EndpointRestrictions, gv schema.GroupVersion, w http.ResponseWriter, req *http.Request, statusCode int, object runtime.Object) {
+	stream, ok := object.(rest.ResourceStreamer)
+	if ok {
+		requestInfo, _ := request.RequestInfoFrom(req.Context())
+		metrics.RecordLongRunning(req, requestInfo, metrics.APIServerComponent, func() {
+			StreamObject(statusCode, gv, s, stream, w, req)
+			trace.Step("StreamObject done")
+		})
+		return
+	}
+
+	_, serializer, err := negotiation.NegotiateOutputMediaType(req, s, restrictions)
+	if err != nil {
+		// if original statusCode was not successful we need to return the original error
+		// we cannot hide it behind negotiation problems
+		if statusCode < http.StatusOK || statusCode >= http.StatusBadRequest {
+			WriteRawJSON(int(statusCode), object, w)
+			return
+		}
+		status := ErrorToAPIStatus(err)
+		WriteRawJSON(int(status.Code), status, w)
+		return
+	}
+	trace.Step("NegotiateOutputMediaType done")
+	if ae := request.AuditEventFrom(req.Context()); ae != nil {
+		audit.LogResponseObject(ae, object, gv, s)
+	}
+	trace.Step("request.AuditEventFrom done")
+	encoder := s.EncoderForVersion(serializer.Serializer, gv)
+	SerializeObject(serializer.MediaType, encoder, w, req, statusCode, object)
+	trace.Step("SerializeObject done")
+}
+
 // WriteObjectNegotiated renders an object in the content type negotiated by the client.
 func WriteObjectNegotiated(s runtime.NegotiatedSerializer, restrictions negotiation.EndpointRestrictions, gv schema.GroupVersion, w http.ResponseWriter, req *http.Request, statusCode int, object runtime.Object) {
 	stream, ok := object.(rest.ResourceStreamer)
