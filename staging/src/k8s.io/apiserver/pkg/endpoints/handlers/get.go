@@ -273,7 +273,7 @@ func ListResource(r rest.Lister, rw rest.Watcher, scope *RequestScope, forceWatc
 		}
 
 		// Log only long List requests (ignore Watch).
-		defer trace.LogIfLong(50 * time.Millisecond)
+		defer trace.LogIfLong(1 * time.Millisecond)
 		trace.Step("About to List from storage")
 		// fmt.Printf("%v, About to List from storage, %v\n", time.Now(), opts.FieldSelector.String())
 		result, err := r.List(ctx, &opts)

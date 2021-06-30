@@ -93,7 +93,7 @@ func SerializeObject(mediaType string, encoder runtime.Encoder, hw http.Response
 		utiltrace.Field{"protocol", req.Proto},
 		utiltrace.Field{"mediaType", mediaType},
 		utiltrace.Field{"encoder", encoder.Identifier()})
-	defer trace.LogIfLong(2 * time.Second)
+	defer trace.LogIfLong(100 * time.Millisecond)
 
 	w := &deferredResponseWriter{
 		mediaType:       mediaType,
@@ -341,5 +341,6 @@ func WriteRawJSON(statusCode int, object interface{}, w http.ResponseWriter) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
+	fmt.Printf("Writing WriteRawJSON with len %v\n", len(output))
 	w.Write(output)
 }
