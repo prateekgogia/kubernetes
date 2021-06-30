@@ -85,7 +85,7 @@ func NewEnvelopeTransformer(envelopeService Service, cacheSize int, baseTransfor
 // TransformFromStorage decrypts data encrypted by this transformer using envelope encryption.
 func (t *envelopeTransformer) TransformFromStorage(data []byte, context value.Context) ([]byte, bool, error) {
 	recordArrival(fromStorageLabel, time.Now())
-
+	// fmt.Printf("%v, Came in TransformFromStorage to get the secret decrypted\n", time.Now())
 	// Read the 16 bit length-of-DEK encoded at the start of the encrypted DEK. 16 bits can
 	// represent a maximum key length of 65536 bytes. We are using a 256 bit key, whose
 	// length cannot fit in 8 bits (1 byte). Thus, we use 16 bits (2 bytes) to store the length.

@@ -128,13 +128,17 @@ func transformResponseObject(ctx context.Context, scope *RequestScope, trace *ut
 		scope.err(err, w, req)
 		return
 	}
+	trace.Step("About to call transformObject")
 	obj, err := transformObject(ctx, result, options, mediaType, scope, req)
 	if err != nil {
 		scope.err(err, w, req)
 		return
 	}
 	kind, serializer, _ := targetEncodingForTransform(scope, mediaType, req)
+	trace.Step("targetEncodingForTransform done")
 	responsewriters.WriteObjectNegotiated(serializer, scope, kind.GroupVersion(), w, req, statusCode, obj)
+	trace.Step("responsewriters.WriteObjectNegotiated done")
+
 }
 
 // errNotAcceptable indicates Accept negotiation has failed
